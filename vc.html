@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Chain Manuals & Guides</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Document List Page Styles */
+        .document-list-page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-logo {
+            font-size: 1.8rem;
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 0.85rem;
+            color: #657786;
+            margin-top: 0.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .documents-list-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(102, 126, 234, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .list-header-text h2 {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .list-header-text p {
+            font-size: 0.85rem;
+            color: #657786;
+            margin-top: 0.2rem;
+        }
+
+        .doc-count {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .documents-list {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .document-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .document-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+            transition: left 0.4s ease;
+        }
+
+        .document-item:hover::before {
+            left: 100%;
+        }
+
+        .document-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.35);
+        }
+
+        .document-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .document-details {
+            flex: 1;
+        }
+
+        .document-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+        }
+
+        .document-description {
+            color: #657786;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .document-arrow {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: transform 0.25s ease;
+            min-width: 36px;
+        }
+
+        .document-item:hover .document-arrow {
+            transform: translateX(4px);
+        }
+
+        /* PDF Viewer Page Styles */
+        .pdf-viewer-page {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .pdf-viewer-page.active {
+            display: flex;
+        }
+
+        .pdf-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 0.85rem 1.25rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .pdf-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .download-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pdf-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .pdf-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: #fff;
+            border: 2px solid #e1e8ed;
+            color: #657786;
+            padding: 0.4rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .zoom-display {
+            font-size: 0.85rem;
+            color: #657786;
+            min-width: 46px;
+            text-align: center;
+        }
+
+        .scroll-indicator {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .document-info {
+            background: rgba(0, 0, 0, 0.04);
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #657786;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .pdf-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.5rem;
+        }
+
+        .pdf-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .pdf-viewer {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            background: #f5f6fa;
+            gap: 1.5rem;
+        }
+
+        .pdf-page {
+            max-width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            background: white;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .pdf-page:hover {
+            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #657786;
+            gap: 1rem;
+            padding: 4rem 2rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e1e8ed;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .page-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 8px;
+            margin: 1rem;
+        }
+
+        /* Scrollbar */
+        .documents-list::-webkit-scrollbar,
+        .pdf-viewer::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .documents-list::-webkit-scrollbar-track,
+        .pdf-viewer::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 4px;
+        }
+
+        .documents-list::-webkit-scrollbar-thumb,
+        .pdf-viewer::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .main-content,
+            .pdf-main {
+                padding: 0.75rem;
+            }
+
+            .header {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .pdf-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .pdf-header-left {
+                flex-wrap: wrap;
+            }
+
+            .pdf-controls {
+                justify-content: center;
+            }
+
+            .documents-list {
+                padding: 1rem;
+            }
+
+            .document-item {
+                padding: 1rem;
+            }
+
+            .document-icon {
+                font-size: 1.6rem;
+                min-width: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Document List Page (shown by default) -->
+    <div class="document-list-page" id="document-list-page">
+        <div class="header">
+            <div class="header-brand">
+                <span class="header-logo">⛓️</span>
+                <div>
+                    <div class="header-title">Value Chain Manuals & Guides</div>
+                    <div class="header-subtitle">Training and reference materials for various value chains</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="documents-list-container">
+                <div class="list-header">
+                    <div class="list-header-text">
+                        <h2>Select a document to view</h2>
+                        <p>Click any document below to open it</p>
+                    </div>
+                    <span class="doc-count" id="doc-count">22 documents</span>
+                </div>
+                <div class="documents-list" id="documents-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Page -->
+    <div class="pdf-viewer-page" id="pdf-viewer-page">
+        <div class="page-progress" id="page-progress"></div>
+
+        <div class="pdf-header">
+            <div class="pdf-header-left">
+                <button class="back-btn" onclick="goBackToList()">
+                    ← Back to List
+                </button>
+                <button class="download-btn" id="download-btn" onclick="downloadDocument()" disabled>
+                    ⬇ Download
+                </button>
+                <span class="pdf-title" id="document-title">📄 Document Viewer</span>
+            </div>
+
+            <div class="pdf-controls">
+                <div class="document-info" id="document-info">Loading…</div>
+
+                <div class="zoom-controls">
+                    <button id="zoom-out" class="control-btn" disabled>−</button>
+                    <div class="zoom-display" id="zoom-level">100%</div>
+                    <button id="zoom-in" class="control-btn" disabled>+</button>
+                    <button id="fit-width" class="control-btn" disabled title="Fit Width">⊡</button>
+                </div>
+
+                <div class="scroll-indicator">📜 Scroll to read</div>
+            </div>
+        </div>
+
+        <div class="pdf-main">
+            <div class="pdf-container">
+                <div class="pdf-viewer" id="pdf-viewer">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading document…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Data ──────────────────────────────────────────────────────────────
+        const VALUE_CHAIN_DOCUMENTS = [
+            { id: 'aquaculture-guide',       name: 'AQUACULTURE GUIDE',       description: 'Comprehensive guide to aquaculture best practices and management',                          path: 'value-chain/AQUACULTURE_GUIDE.pdf',                              icon: '🐟' },
+            { id: 'aquaculture-manual',      name: 'AQUACULTURE MANUAL',      description: 'Detailed manual for aquaculture operations and procedures',                               path: 'value-chain/AQUACULTURE_MANUAL.pdf',                             icon: '📘' },
+            { id: 'avocado-guide',           name: 'AVOCADO GUIDE',           description: 'Best practices for avocado farming and quality management',                               path: 'value-chain/AVOCADO_GUIDE.pdf',                                  icon: '🥑' },
+            { id: 'avocado-manual',          name: 'AVOCADO MANUAL',          description: 'Technical manual for avocado cultivation and post-harvest handling',                       path: 'value-chain/AVOCADO_MANUAL.pdf',                                 icon: '📗' },
+            { id: 'banana-strategy',         name: 'BANANA COMMERCIALIZATION STRATEGY FOR KISII COUNTY', description: 'Strategic plan for banana commercialization and market expansion in Kisii County', path: 'value-chain/BANANA_COMMERCIALIZATION_STRATEGY_FOR_KISII_COUNTY.pdf', icon: '📊' },
+            { id: 'banana-guide',            name: 'BANANA GUIDE',            description: 'Guidelines for banana cultivation and quality control',                                    path: 'value-chain/BANANA_GUIDE.pdf',                                   icon: '🍌' },
+            { id: 'banana-manual',           name: 'BANANA MANUAL',           description: 'Operational manual for banana farming and processing',                                    path: 'value-chain/BANANA_MANUAL.pdf',                                  icon: '📙' },
+            { id: 'cassava-guide',           name: 'CASSAVA GUIDE',           description: 'Guidelines for cassava cultivation and pest management',                                  path: 'value-chain/CASSAVA_GUIDE.pdf',                                  icon: '🌿' },
+            { id: 'cassava-manual',          name: 'CASSAVA MANUAL',          description: 'Manual for cassava farming techniques and processing',                                    path: 'value-chain/CASSAVA_MANUAL.pdf',                                 icon: '📒' },
+            { id: 'chicken-guide',           name: 'CHICKEN GUIDE',           description: 'Best practices for poultry farming and disease control',                                  path: 'value-chain/CHICKEN_GUIDE.pdf',                                  icon: '🐔' },
+            { id: 'chicken-manual',          name: 'CHICKEN MANUAL',          description: 'Detailed manual for poultry production and management',                                   path: 'value-chain/CHICKEN_MANUAL.pdf',                                 icon: '📕' },
+            { id: 'coconut-guide',           name: 'COCONUT GUIDE',           description: 'Guidelines for coconut cultivation and product utilization',                              path: 'value-chain/COCONUT_GUIDE.pdf',                                  icon: '🥥' },
+            { id: 'coconut-manual',          name: 'COCONUT MANUAL',          description: 'Technical manual for coconut farming and processing',                                     path: 'value-chain/COCONUT_MANUAL.pdf',                                 icon: '📘' },
+            { id: 'dairy-guide',             name: 'DAIRY GUIDE',             description: 'Guide to dairy cattle management and milk production',                                    path: 'value-chain/DAIRY_GUIDE.pdf',                                    icon: '🐄' },
+            { id: 'dairy-manual',            name: 'DAIRY MANUAL',            description: 'Manual for dairy farm operations and milk processing',                                    path: 'value-chain/DAIRY_MANUAL.pdf',                                   icon: '📔' },
+            { id: 'export-vegetable-guide',  name: 'EXPORT VEGETABLE GUIDE',  description: 'Guidelines for vegetable export standards and logistics',                                 path: 'value-chain/EXPORT_VEGETABLE_GUIDE.pdf',                         icon: '🥦' },
+            { id: 'export-vegetable-manual', name: 'EXPORT VEGETABLE MANUAL', description: 'Manual for export vegetable production and handling',                                     path: 'value-chain/EXPORT_VEGETABLE_MANUAL.pdf',                        icon: '📙' },
+            { id: 'mango-manual',            name: 'MANGO MANUAL',            description: 'Manual for mango cultivation and post-harvest care',                                      path: 'value-chain/MANGO_MANUAL.pdf',                                   icon: '🥭' },
+            { id: 'moringa-guide',           name: 'MORINGA GUIDE',           description: 'Guide to moringa cultivation and nutritional benefits',                                   path: 'value-chain/MORINGA_GUIDE.pdf',                                  icon: '🌱' },
+            { id: 'moringa-manual',          name: 'MORINGA MANUAL',          description: 'Manual for moringa farming and processing',                                               path: 'value-chain/MORINGA_MANUAL.pdf',                                 icon: '📗' },
+            { id: 'pineapple-guide',         name: 'PINEAPPLE GUIDE',         description: 'Guide to pineapple cultivation and quality control',                                      path: 'value-chain/PINEAPPLE_GUIDE.pdf',                                icon: '🍍' },
+            { id: 'pineapple-manual',        name: 'PINEAPPLE MANUAL',        description: 'Manual for pineapple production and post-harvest handling',                               path: 'value-chain/PINEAPPLE_MANUAL.pdf',                               icon: '📘' },
+        ];
+
+        // ── Portal ────────────────────────────────────────────────────────────
+        let currentDocument = null;
+        let pdfViewer = null;
+
+        function init() {
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            populateList();
+        }
+
+        function populateList() {
+            const list = document.getElementById('documents-list');
+            list.innerHTML = '';
+            document.getElementById('doc-count').textContent =
+                VALUE_CHAIN_DOCUMENTS.length + ' documents';
+
+            VALUE_CHAIN_DOCUMENTS.forEach(doc => {
+                const item = document.createElement('div');
+                item.className = 'document-item';
+                item.onclick = () => openDocument(doc);
+                item.innerHTML = `
+                    <div class="document-icon">${doc.icon}</div>
+                    <div class="document-details">
+                        <div class="document-name">${doc.name}</div>
+                        <div class="document-description">${doc.description}</div>
+                    </div>
+                    <div class="document-arrow">→</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function openDocument(doc) {
+            currentDocument = doc;
+
+            document.getElementById('document-list-page').style.display = 'none';
+            document.getElementById('pdf-viewer-page').classList.add('active');
+            document.getElementById('document-title').textContent = `📄 ${doc.name}`;
+
+            if (pdfViewer) pdfViewer.cleanup();
+            pdfViewer = new ContinuousPDFViewer(doc.path);
+        }
+
+        function goBackToList() {
+            document.getElementById('pdf-viewer-page').classList.remove('active');
+            document.getElementById('document-list-page').style.display = 'flex';
+
+            if (pdfViewer) { pdfViewer.cleanup(); pdfViewer = null; }
+            currentDocument = null;
+        }
+
+        function downloadDocument() {
+            if (!currentDocument) return;
+            const link = document.createElement('a');
+            link.href = currentDocument.path;
+            link.download = currentDocument.name + '.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ── PDF Viewer ────────────────────────────────────────────────────────
+        class ContinuousPDFViewer {
+            constructor(pdfPath) {
+                this.pdfDoc = null;
+                this.scale = 1.0;
+                this.renderedPages = new Map();
+                this.totalPages = 0;
+                this.currentViewPage = 1;
+                this.progressUpdatePending = false;
+                this.isRendering = false;
+                this.pdfPath = pdfPath;
+
+                this.initElements();
+                this.bindEvents();
+                this.loadPDF();
+            }
+
+            initElements() {
+                this.viewer      = document.getElementById('pdf-viewer');
+                this.zoomInBtn   = document.getElementById('zoom-in');
+                this.zoomOutBtn  = document.getElementById('zoom-out');
+                this.fitWidthBtn = document.getElementById('fit-width');
+                this.zoomLevel   = document.getElementById('zoom-level');
+                this.docInfo     = document.getElementById('document-info');
+                this.progress    = document.getElementById('page-progress');
+                this.downloadBtn = document.getElementById('download-btn');
+            }
+
+            bindEvents() {
+                this.zoomInBtn.addEventListener('click',   () => this.zoomIn());
+                this.zoomOutBtn.addEventListener('click',  () => this.zoomOut());
+                this.fitWidthBtn.addEventListener('click', () => this.fitToWidth());
+                this.viewer.addEventListener('scroll',     () => this.updateProgress());
+
+                this.keyboardHandler = e => this.handleKeyboard(e);
+                document.addEventListener('keydown', this.keyboardHandler);
+
+                this.resizeHandler = () => this.handleResize();
+                window.addEventListener('resize', this.resizeHandler);
+            }
+
+            async loadPDF() {
+                this.showLoading();
+                try {
+                    this.pdfDoc    = await pdfjsLib.getDocument(this.pdfPath).promise;
+                    this.totalPages = this.pdfDoc.numPages;
+                    this.docInfo.textContent = `Document loaded • ${this.totalPages} pages`;
+                    this.enableControls();
+                    await this.renderAllPages();
+                } catch (err) {
+                    this.showError('Failed to load the document. Please check that the PDF file exists.');
+                    console.error('PDF loading error:', err);
+                }
+            }
+
+            async renderAllPages() {
+                if (this.isRendering) return;
+                this.isRendering = true;
+                this.viewer.innerHTML = '';
+                this.renderedPages.clear();
+
+                for (let n = 1; n <= this.totalPages; n++) await this.renderPage(n);
+
+                this.isRendering = false;
+                this.updateProgress();
+            }
+
+            async renderPage(pageNum) {
+                try {
+                    const page     = await this.pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: this.scale });
+                    const canvas   = document.createElement('canvas');
+                    canvas.className = 'pdf-page';
+                    canvas.id = `page-${pageNum}`;
+                    canvas.height = viewport.height;
+                    canvas.width  = viewport.width;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    this.viewer.appendChild(canvas);
+                    this.renderedPages.set(pageNum, canvas);
+                } catch (err) {
+                    console.error(`Error rendering page ${pageNum}:`, err);
+                    const div = document.createElement('div');
+                    div.className = 'error-message';
+                    div.textContent = `Failed to load page ${pageNum}`;
+                    this.viewer.appendChild(div);
+                }
+            }
+
+            updateProgress() {
+                if (!this.viewer || this.totalPages === 0 || this.progressUpdatePending) return;
+                this.progressUpdatePending = true;
+                requestAnimationFrame(() => {
+                    const sh  = this.viewer.scrollHeight - this.viewer.clientHeight;
+                    const pct = sh > 0 ? Math.min((this.viewer.scrollTop / sh) * 100, 100) : 0;
+                    this.progress.style.width = `${pct}%`;
+
+                    let cur = 1;
+                    const vr = this.viewer.getBoundingClientRect();
+                    this.viewer.querySelectorAll('.pdf-page').forEach((p, i) => {
+                        if (p.getBoundingClientRect().top <= vr.top + 100) cur = i + 1;
+                    });
+                    if (cur !== this.currentViewPage) {
+                        this.currentViewPage = cur;
+                        this.docInfo.textContent = `Page ${cur} of ${this.totalPages}`;
+                    }
+                    this.progressUpdatePending = false;
+                });
+            }
+
+            showLoading() {
+                this.viewer.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading document…</p>
+                        <p style="font-size:.85rem;opacity:.6;margin-top:.4rem">Please wait while we prepare your document</p>
+                    </div>`;
+            }
+
+            showError(msg) {
+                this.viewer.innerHTML = `<div class="error-message"><p>${msg}</p></div>`;
+            }
+
+            enableControls() {
+                this.zoomInBtn.disabled = this.zoomOutBtn.disabled =
+                    this.fitWidthBtn.disabled = this.downloadBtn.disabled = false;
+            }
+
+            updateZoomDisplay() {
+                this.zoomLevel.textContent = Math.round(this.scale * 100) + '%';
+            }
+
+            async zoomIn()  { if (this.isRendering) return; this.scale = Math.min(this.scale * 1.25, 3.0); this.updateZoomDisplay(); await this.renderAllPages(); }
+            async zoomOut() { if (this.isRendering) return; this.scale = Math.max(this.scale * 0.8,  0.5); this.updateZoomDisplay(); await this.renderAllPages(); }
+
+            async fitToWidth() {
+                if (!this.pdfDoc || this.isRendering) return;
+                const vw       = this.viewer.clientWidth - 64;
+                const page     = await this.pdfDoc.getPage(1);
+                const viewport = page.getViewport({ scale: 1.0 });
+                this.scale = vw / viewport.width;
+                this.updateZoomDisplay();
+                await this.renderAllPages();
+            }
+
+            handleKeyboard(e) {
+                if (!this.pdfDoc) return;
+                switch (e.key) {
+                    case '+': case '=': e.preventDefault(); this.zoomIn();  break;
+                    case '-':           e.preventDefault(); this.zoomOut(); break;
+                    case 'Home':        e.preventDefault(); this.viewer.scrollTop = 0; break;
+                    case 'End':         e.preventDefault(); this.viewer.scrollTop = this.viewer.scrollHeight; break;
+                    case 'Escape':      e.preventDefault(); goBackToList(); break;
+                    case 's': if (e.ctrlKey || e.metaKey) { e.preventDefault(); downloadDocument(); } break;
+                }
+            }
+
+            handleResize() {
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => {
+                    if (this.pdfDoc && !this.isRendering) this.renderAllPages();
+                }, 500);
+            }
+
+            cleanup() {
+                if (this.keyboardHandler) document.removeEventListener('keydown', this.keyboardHandler);
+                if (this.resizeHandler)   window.removeEventListener('resize',   this.resizeHandler);
+                if (this.resizeTimeout)   clearTimeout(this.resizeTimeout);
+                if (this.progress)        this.progress.style.width = '0%';
+                if (this.viewer)          this.viewer.innerHTML = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
